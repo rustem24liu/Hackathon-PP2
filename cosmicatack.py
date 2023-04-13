@@ -15,6 +15,7 @@ background = pygame.image.load("./img/backgrounds/bg2.png")
 
 FPS = 60
 FramePerSec = pygame.time.Clock()
+level = 0
 
 running = True
 
@@ -45,18 +46,20 @@ class Player(pygame.sprite.Sprite):
             if pressed_keys[K_DOWN]:
                 self.rect.move_ip(0, self.speed)
     
-
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self):
+
+    def __init__(self, x, y):
         super().__init__()
-        self.image = pygame.image.load('./img/bullet/bullet1.png')
-        self.rect1 = self.image.get_rect()
-        self.rect1.center = (P1.rect.center)
-    def fire(self):
-        pressedkey = pygame.key.get_pressed()
-        if pressedkey[K_f]:        
-            self.rect1.move_ip(0, -P1.speed)
-        
+        self.image = pygame.image.load('./img/bullet/bullet1.png').convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.bottom = y - 10
+        self.speed = 10
+    def update(self):
+        self.rect.move_ip(0, -self.speed)
+
+        if self.rect.top <= 1:
+            self.kill() 
         
 class Enemy(pygame.sprite.Sprite):
     def __init__(self): 
@@ -76,19 +79,42 @@ class Enemy(pygame.sprite.Sprite):
             self.rect = self.image.get_rect()
             self.rect.center = (random.randint(20, 1200), 40) 
 
-
+class SmallEnemy(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        
+        self.image = pygame.image.load('./img/enemy/enemy2_1.png')
+        self.rect = self.image.get_rect()
+    def move(self):
+        self.image = pygame.image.load('./img/enemy/enemy2_1.png')
+        self.rect = self.image.get_rect()
+        
+        self.x = random.randint(20, 1150)
+        self.y = random.randint(20, 750)
+        self.dx = 2
+        self.dy = 2
+        self.x += self.dx
+        self.y += self.dy
+        if self.x > 1180 or self.x < 0:
+            self.dx *= -1
+        if self.y > 780 or self.y < 0:
+            self.dy *= -1
+        self.rect.center = (self.x, self.y)
+        self.rect.move(self.x, self.y)
 
 P1 = Player()
 E1 = Enemy()
-B1 = Bullet()
+S1 = SmallEnemy()
+bullet = Bullet(P1.rect.centerx, P1.rect.top)
+bullets = pygame.sprite.Group()
 # C1 = Coins()
 # B1 = Bonuscoin()
 # Q1 = Beer()
 
-# enemies = pygame.sprite.Group() 
-# enemies.add(E1)
-bullet= pygame.sprite.Group()
-bullet.add(B1)
+enemies = pygame.sprite.Group() 
+enemies.add(S1)
+bullets.add(bullet)
+
 # coins = pygame.sprite.Group()
 # coins.add(C1)
 # beer = pygame.sprite.Group()
@@ -123,12 +149,11 @@ while running:
     for entity in all_sprites:
         screen.blit(entity.image, entity.rect)
         entity.move()
+    for x in enemies:
+        screen.blit(x.image, x.rect)
+        x.move()
+
     
-    pressedkey = pygame.key.get_pressed()
-    
-    for x in bullet:
-        screen.blit(x.image,x.rect1 )
-        x.fire()
 
 
 
